@@ -1,39 +1,34 @@
 const ClothingItem = require("../models/clothingItem");
-const { INTERNAL_SERVER_ERROR, NOT_FOUND } = require("../utils/errors");
+const {
+  INTERNAL_SERVER_ERROR,
+  NOT_FOUND,
+  UNAUTHORIZED,
+  BAD_REQUEST,
+} = require("../utils/errors");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  ClothingItem.create({ name, weather, imageUrl })
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
-    );
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid data provided" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occurred on the server" });
+    });
 };
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send({ items }))
+    .then((items) => res.status(201).send({ items }))
     .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
-    );
-};
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageUrl } = req.body;
-
-  ClothingItem.findByIdAndUpdate(
-    itemId,
-    { $set: { imageUrl } },
-    { new: true, runValidators: true }
-  )
-    .then((item) => {
-      if (!item)
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      return res.status(200).send({ item });
-    })
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
+      res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occurred on the server" })
     );
 };
 
@@ -43,7 +38,7 @@ const deleteItem = (req, res) => {
     .then((item) => {
       if (!item)
         return res.status(NOT_FOUND).send({ message: "Item not found" });
-      return res.status(204).send();
+      return res.status(200).send();
     })
     .catch((err) =>
       res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
@@ -51,7 +46,14 @@ const deleteItem = (req, res) => {
 };
 
 const likeItem = (req, res) => {
+  if (!req.user || !req.user._id) {
+    return res
+      .status(UNAUTHORIZED)
+      .json({ message: "Authentication required" });
+  }
+
   const userId = req.user && req.user._id;
+
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: userId } }, // add _id to the array if it's not there yet
@@ -62,13 +64,25 @@ const likeItem = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
-    );
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
 };
 
 const dislikeItem = (req, res) => {
+  if (!req.user || !req.user._id) {
+    return res
+      .status(UNAUTHORIZED)
+      .json({ message: "Authentication required" });
+  }
+
   const userId = req.user && req.user._id;
+
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: userId } }, // remove _id from the array
@@ -79,15 +93,19 @@ const dislikeItem = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
-    );
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
 };
 
 module.exports = {
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   dislikeItem,
