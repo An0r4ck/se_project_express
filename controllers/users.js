@@ -1,5 +1,9 @@
 const User = require("../models/user");
-const { INTERNAL_ERROR, BAD_REQUEST, NOT_FOUND } = require("../utils/errors");
+const {
+  INTERNAL_SERVER_ERROR,
+  BAD_REQUEST,
+  NOT_FOUND,
+} = require("../utils/errors");
 
 // GET /users
 
@@ -27,8 +31,8 @@ const createUser = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const { userid } = req.params;
-  User.findById(userid)
+  const { userId } = req.params;
+  User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send(user))
     .catch((err) => {
@@ -38,7 +42,7 @@ const getUser = (req, res) => {
       } else if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
-      return res.status(INTERNAL_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
     });
 };
 
