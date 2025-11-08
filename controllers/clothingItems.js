@@ -24,7 +24,7 @@ const createItem = (req, res) => {
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(201).send({ items }))
+    .then((items) => res.status(200).send({ items }))
     .catch((err) =>
       res
         .status(INTERNAL_SERVER_ERROR)
@@ -40,9 +40,14 @@ const deleteItem = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send();
     })
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: err.message })
-    );
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
 };
 
 const likeItem = (req, res) => {
