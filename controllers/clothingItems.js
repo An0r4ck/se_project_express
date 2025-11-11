@@ -8,7 +8,7 @@ const {
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -22,19 +22,17 @@ const createItem = (req, res) => {
     });
 };
 
-const getItems = (req, res) => {
-  ClothingItem.find({})
+const getItems = (req, res) => ClothingItem.find({})
     .then((items) => res.status(200).send({ items }))
-    .catch((err) =>
+    .catch(() =>
       res
         .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error occurred on the server" })
     );
-};
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  ClothingItem.findByIdAndDelete(itemId)
+  return ClothingItem.findByIdAndDelete(itemId)
     .then((item) => {
       if (!item)
         return res.status(NOT_FOUND).send({ message: "Item not found" });
@@ -59,7 +57,7 @@ const likeItem = (req, res) => {
 
   const userId = req.user && req.user._id;
 
-  ClothingItem.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: userId } }, // add _id to the array if it's not there yet
     { new: true }
@@ -88,7 +86,7 @@ const dislikeItem = (req, res) => {
 
   const userId = req.user && req.user._id;
 
-  ClothingItem.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: userId } }, // remove _id from the array
     { new: true }
