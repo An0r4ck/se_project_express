@@ -4,6 +4,7 @@ const {
   NOT_FOUND,
   UNAUTHORIZED,
   BAD_REQUEST,
+  FORBIDDEN,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -22,7 +23,8 @@ const createItem = (req, res) => {
     });
 };
 
-const getItems = (req, res) => ClothingItem.find({})
+const getItems = (req, res) =>
+  ClothingItem.find({})
     .then((items) => res.status(200).send({ items }))
     .catch(() =>
       res
@@ -32,19 +34,30 @@ const getItems = (req, res) => ClothingItem.find({})
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  return ClothingItem.findByIdAndDelete(itemId)
+
+  if (!req.user || !req.user._id) {
+    return res.status(UNAUTHORIZED).send({ message: 'Authentication required' });
+  }
+
+  return ClothingItem.findById(itemId)
     .then((item) => {
-      if (!item)
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      return res.status(200).send();
+      if (!item) {
+        return res.status(NOT_FOUND).send({ message: 'Item not found' });
+      }
+
+      // Ensure the requester is the owner
+      if (item.owner && item.owner.toString() !== req.user._id) {
+        return res.status(FORBIDDEN).send({ message: 'You do not have permission to delete this item' });
+      }
+
+      // Delete and return 204 No Content
+      return ClothingItem.findByIdAndDelete(itemId).then(() => res.status(204).send());
     })
     .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
+      if (err.name === 'CastError') {
+        return res.status(BAD_REQUEST).send({ message: 'Invalid item ID' });
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
     });
 };
 

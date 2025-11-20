@@ -11,3 +11,7 @@ The back-end project is focused on creating a server for the WTWR application. T
 ### Testing
 
 Testing is done primarily with the Sprint 12 Test Suite through Postman
+
+#### Project Pitch
+
+Project Pitch will be submitted upon fixing all potential mistakes within the project
