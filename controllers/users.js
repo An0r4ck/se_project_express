@@ -19,13 +19,19 @@ const getUsers = (req, res) => {
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occured on the server" });
     });
 };
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  // Hash the password before creating the user
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and password are required" });
+  }
   return bcrypt
     .hash(password, 10)
     .then((hash) =>
@@ -38,12 +44,16 @@ const createUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid data provided" });
       }
       if (err.code === 11000) {
         return res.status(CONFLICT).send({ message: "Email already exists" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occured on the server" });
     });
 };
 
@@ -60,7 +70,9 @@ const getCurrentUser = (req, res) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occured on the server" });
     });
 };
 
@@ -100,7 +112,9 @@ const login = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occured on the server" });
     });
 };
 
@@ -132,9 +146,13 @@ const updateUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError" || err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: err.message });
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Invalid data provided" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error occured on the server" });
     });
 };
 

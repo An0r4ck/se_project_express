@@ -28,4 +28,4 @@ const clothingItemsSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-module.exports = mongoose.model("item", clothingItemsSchema);
+module.exports = mongoose.model("clothingItem", clothingItemsSchema);
