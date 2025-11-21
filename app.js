@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const routes = require("./routes");
 const { createUser, login } = require("./controllers/users");
 const { getItems } = require("./controllers/clothingItems");
@@ -15,6 +16,7 @@ mongoose
   })
   .catch(console.error);
 
+app.use(cors());
 app.use(express.json());
 
 app.post("/signin", login);

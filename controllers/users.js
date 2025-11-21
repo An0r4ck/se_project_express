@@ -21,7 +21,7 @@ const getUsers = (req, res) => {
       console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -53,7 +53,7 @@ const createUser = (req, res) => {
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -72,7 +72,7 @@ const getCurrentUser = (req, res) => {
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -114,7 +114,7 @@ const login = (req, res) => {
       console.error(err);
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 
@@ -152,7 +152,7 @@ const updateUser = (req, res) => {
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 

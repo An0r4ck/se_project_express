@@ -1,5 +1,4 @@
 // Common HTTP / application error codes as named constants
-// Import like: const errors = require('../utils/errors');
 const BAD_REQUEST = 400;
 const UNAUTHORIZED = 401;
 const FORBIDDEN = 403;

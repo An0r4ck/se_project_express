@@ -36,28 +36,36 @@ const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
   if (!req.user || !req.user._id) {
-    return res.status(UNAUTHORIZED).send({ message: 'Authentication required' });
+    return res
+      .status(UNAUTHORIZED)
+      .send({ message: "Authentication required" });
   }
 
   return ClothingItem.findById(itemId)
     .then((item) => {
       if (!item) {
-        return res.status(NOT_FOUND).send({ message: 'Item not found' });
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
 
       // Ensure the requester is the owner
       if (item.owner && item.owner.toString() !== req.user._id) {
-        return res.status(FORBIDDEN).send({ message: 'You do not have permission to delete this item' });
+        return res
+          .status(FORBIDDEN)
+          .send({ message: "You do not have permission to delete this item" });
       }
 
       // Delete and return 204 No Content
-      return ClothingItem.findByIdAndDelete(itemId).then(() => res.status(204).send());
+      return ClothingItem.findByIdAndDelete(itemId).then(() =>
+        res.status(204).send()
+      );
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid item ID' });
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
