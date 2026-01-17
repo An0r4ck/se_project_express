@@ -4,6 +4,7 @@ const cors = require("cors");
 const routes = require("./routes");
 const { createUser, login } = require("./controllers/users");
 const { getItems } = require("./controllers/clothingItems");
+const errorHandler = require("./middlewares/error-handler");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -24,6 +25,8 @@ app.post("/signup", createUser);
 app.get("/items", getItems);
 
 app.use(routes);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
