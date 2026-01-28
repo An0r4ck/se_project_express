@@ -7,32 +7,19 @@ const {
   FORBIDDEN,
 } = require("../utils/errors");
 
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
-    .then((item) => res.status(201).send({ data: item }))
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .send({ message: "Invalid data provided" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" });
-    });
+    .then((item) => res.status(201).send({ item }))
+    .catch(next);
 };
 
-const getItems = (req, res) =>
+const getItems = (req, res, next) =>
   ClothingItem.find({})
     .then((items) => res.status(200).send({ items }))
-    .catch(() =>
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error occurred on the server" })
-    );
+    .catch(next);
 
-const deleteItem = (req, res) => {
+const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
 
   if (!req.user || !req.user._id) {
@@ -59,21 +46,14 @@ const deleteItem = (req, res) => {
         res.status(204).send()
       );
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   if (!req.user || !req.user._id) {
     return res
       .status(UNAUTHORIZED)
-      .json({ message: "Authentication required" });
+      .send({ message: "Authentication required" });
   }
 
   const userId = req.user && req.user._id;
@@ -88,21 +68,14 @@ const likeItem = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
-const dislikeItem = (req, res) => {
+const dislikeItem = (req, res, next) => {
   if (!req.user || !req.user._id) {
     return res
       .status(UNAUTHORIZED)
-      .json({ message: "Authentication required" });
+      .send({ message: "Authentication required" });
   }
 
   const userId = req.user && req.user._id;
@@ -117,14 +90,7 @@ const dislikeItem = (req, res) => {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
-    });
+    .catch(next);
 };
 
 module.exports = {

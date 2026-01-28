@@ -1,9 +1,12 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const routes = require("./routes");
 const { createUser, login } = require("./controllers/users");
 const { getItems } = require("./controllers/clothingItems");
+const { errors } = require("celebrate");
+const { requestlogger, errorLogger } = require("./middlewares/logger");
 const errorHandler = require("./middlewares/error-handler");
 
 const app = express();
@@ -24,7 +27,11 @@ app.post("/signin", login);
 app.post("/signup", createUser);
 app.get("/items", getItems);
 
+app.use(requestlogger);
 app.use(routes);
+
+app.use(errorLogger);
+app.use(errors());
 
 app.use(errorHandler);
 
