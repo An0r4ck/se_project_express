@@ -1,11 +1,7 @@
 const ClothingItem = require("../models/clothingItem");
-const {
-  INTERNAL_SERVER_ERROR,
-  NOT_FOUND,
-  UNAUTHORIZED,
-  BAD_REQUEST,
-  FORBIDDEN,
-} = require("../utils/errors");
+const UnauthorizedError = require("../errors/unauthorized-error");
+const NotFoundError = require("../errors/not-found-error");
+const ForbiddenError = require("../errors/forbidden-error");
 
 const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
@@ -23,22 +19,17 @@ const deleteItem = (req, res, next) => {
   const { itemId } = req.params;
 
   if (!req.user || !req.user._id) {
-    return res
-      .status(UNAUTHORIZED)
-      .send({ message: "Authentication required" });
+    return next(new UnauthorizedError("Authentication required"));
   }
 
   return ClothingItem.findById(itemId)
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => {
-      if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      }
-
       // Ensure the requester is the owner
       if (item.owner && item.owner.toString() !== req.user._id) {
-        return res
-          .status(FORBIDDEN)
-          .send({ message: "You do not have permission to delete this item" });
+        return next(
+          new ForbiddenError("You do not have permission to delete this item")
+        );
       }
 
       // Delete and return 204 No Content
@@ -51,9 +42,7 @@ const deleteItem = (req, res, next) => {
 
 const likeItem = (req, res, next) => {
   if (!req.user || !req.user._id) {
-    return res
-      .status(UNAUTHORIZED)
-      .send({ message: "Authentication required" });
+    return next(new UnauthorizedError("Authentication required"));
   }
 
   const userId = req.user && req.user._id;
@@ -63,9 +52,8 @@ const likeItem = (req, res, next) => {
     { $addToSet: { likes: userId } }, // add _id to the array if it's not there yet
     { new: true }
   )
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => {
-      if (!item)
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
     .catch(next);
@@ -73,9 +61,7 @@ const likeItem = (req, res, next) => {
 
 const dislikeItem = (req, res, next) => {
   if (!req.user || !req.user._id) {
-    return res
-      .status(UNAUTHORIZED)
-      .send({ message: "Authentication required" });
+    return next(new UnauthorizedError("Authentication required"));
   }
 
   const userId = req.user && req.user._id;
@@ -85,9 +71,8 @@ const dislikeItem = (req, res, next) => {
     { $pull: { likes: userId } }, // remove _id from the array
     { new: true }
   )
+    .orFail(() => new NotFoundError("Item not found"))
     .then((item) => {
-      if (!item)
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
       return res.status(200).send({ item });
     })
     .catch(next);

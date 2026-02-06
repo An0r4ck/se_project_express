@@ -8,9 +8,13 @@ The back-end project is focused on creating a server for the WTWR application. T
 
 `npm run dev` — to launch the server with the hot reload feature
 
-### Testing
+### Domains
 
-Testing is done primarily with the Sprint 13 Test Suite through Postman
+(wtwr.mappuchan.com/)
+
+(www.wtwr.mappuchan.com/)
+
+(api.wtwr.mappuchan.com/)
 
 #### Project Pitch
 

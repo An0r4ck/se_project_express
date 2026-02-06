@@ -7,7 +7,7 @@ const { createUser, login } = require("./controllers/users");
 const { getItems } = require("./controllers/clothingItems");
 const { errors } = require("celebrate");
 const { requestlogger, errorLogger } = require("./middlewares/logger");
-const errorHandler = require("./middlewares/error-handler");
+const errorHandler = require("./middlewares/error-handler.js");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -28,10 +28,6 @@ app.get("/crash-test", () => {
     throw new Error("Server will crash now");
   }, 0);
 });
-
-app.post("/signin", login);
-app.post("/signup", createUser);
-app.get("/items", getItems);
 
 app.use(requestlogger);
 app.use(routes);

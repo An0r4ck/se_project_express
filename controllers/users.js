@@ -1,13 +1,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const {
-  INTERNAL_SERVER_ERROR,
-  CONFLICT,
-  BAD_REQUEST,
-  NOT_FOUND,
-  UNAUTHORIZED,
-} = require("../utils/errors");
+const ConflictError = require("../errors/conflict-error");
+const UnauthorizedError = require("../errors/unauthorized-error");
+const BadRequestError = require("../errors/bad-request-error");
+const NotFoundError = require("../errors/not-found-error");
 
 const { JWT_SECRET = "dev-secret" } = require("../config");
 
@@ -22,10 +19,13 @@ const getUsers = (req, res, next) => {
 
 const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
+  User.findOne({ email }).then((existingUser) => {
+    if (existingUser) {
+      return next(new ConflictError("Email already in use"));
+    }
+  });
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
   return bcrypt
     .hash(password, 10)
@@ -51,9 +51,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   // Find user by email
@@ -61,17 +59,13 @@ const login = (req, res, next) => {
     .select("+password")
     .then((user) => {
       if (!user) {
-        return res
-          .status(UNAUTHORIZED)
-          .send({ message: "Invalid email or password" });
+        return next(new UnauthorizedError("Invalid email or password"));
       }
 
       // Compare password
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
-          return res
-            .status(UNAUTHORIZED)
-            .send({ message: "Invalid email or password" });
+          return next(new UnauthorizedError("Invalid email or password"));
         }
 
         // Sign JWT and return
@@ -94,9 +88,7 @@ const updateUser = (req, res, next) => {
   if (typeof avatar !== "undefined") update.avatar = avatar;
 
   if (Object.keys(update).length === 0) {
-    return res
-      .status(BAD_REQUEST)
-      .send({ message: "No valid fields provided to update" });
+    return next(new BadRequestError("No valid fields provided to update"));
   }
 
   return User.findByIdAndUpdate(userId, update, {
@@ -106,7 +98,7 @@ const updateUser = (req, res, next) => {
     .select("-password")
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
+        return next(new NotFoundError("User not found"));
       }
       return res.status(200).send(user);
     })
